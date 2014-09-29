@@ -26,6 +26,8 @@ the unite source of this Mozaic.fm client.
 :Unite mozaicfm
 ```
 
+![unite-mozaicfm.png](https://raw.githubusercontent.com/wiki/koturn/vim-mozaicfm/image/unite-mozaicfm.png)
+
 
 ## Requirement
 

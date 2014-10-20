@@ -11,7 +11,7 @@ set cpo&vim
 
 
 let g:mozaicfm#play_command = get(g:, 'mozaicfm#play_command', 'mplayer')
-let g:mozaicfm#play_option = get(g:, 'mozaicfm#play_option', '-really-quiet -slave -cache 65536 -vo NONE')
+let g:mozaicfm#play_option = get(g:, 'mozaicfm#play_option', '-really-quiet -slave -cache 1024 -vo NONE')
 let g:mozaicfm#cache_dir = get(g:, 'mozaicfm#cache_dir', expand('~/.cache/mozaicfm'))
 let g:mozaicfm#verbose = get(g:, 'mozaicfm#verbose', 0)
 
@@ -24,7 +24,7 @@ let s:XML = s:V.import('Web.XML')
 
 let s:current_channel = {}
 let s:MOZAICFM_FEEDS_URL = 'http://feeds.feedburner.com/mozaicfm'
-let s:MOZAICFM_M4A_FILE_FORMAT = 'http://s3-ap-northeast-1.amazonaws.com/mozaicfm/mozaic-ep%s.m4a'
+let s:MOZAICFM_M4A_FILE_FORMAT = 'http://files.mozaic.fm/mozaic-ep%s.m4a'
 let s:CACHE_FILENAME = 'channel.json'
 let s:PROCESS_NAME = 'mozaicfm'
 lockvar s:MOZAICFM_FEEDS_URL

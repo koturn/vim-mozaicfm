@@ -25,6 +25,8 @@ command! -bar -nargs=1 MozaicfmRelSeek call mozaicfm#rel_seek(<f-args>)
 command! -bar -nargs=0 MozaicfmShowInfo call mozaicfm#show_info()
 command! -bar -nargs=0 MozaicfmUpdateChannel call mozaicfm#update_channel()
 
+command! CtrlPMozaicfm call ctrlp#init(ctrlp#mozaicfm#id())
+
 
 augroup Mozaicfm
   autocmd!

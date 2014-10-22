@@ -11,15 +11,15 @@ set cpo&vim
 
 
 let g:mozaicfm#play_command = get(g:, 'mozaicfm#play_command', 'mplayer')
-let g:mozaicfm#play_option = get(g:, 'mozaicfm#play_option', '-really-quiet -slave -cache 1024 -vo NONE')
+let g:mozaicfm#play_option = get(g:, 'mozaicfm#play_option', '-really-quiet -slave -cache 1024 -novideo')
 let g:mozaicfm#cache_dir = get(g:, 'mozaicfm#cache_dir', expand('~/.cache/mozaicfm'))
 let g:mozaicfm#verbose = get(g:, 'mozaicfm#verbose', 0)
 
 let s:V = vital#of('mozaicfm')
-let s:PM = s:V.import('ProcessManager')
 let s:CACHE = s:V.import('System.Cache')
-let s:JSON = s:V.import('Web.JSON')
 let s:HTTP = s:V.import('Web.HTTP')
+let s:JSON = s:V.import('Web.JSON')
+let s:PM = s:V.import('ProcessManager')
 let s:XML = s:V.import('Web.XML')
 
 let s:current_channel = {}
@@ -40,8 +40,7 @@ endfunction
 
 function! mozaicfm#play_by_number(str)
   let l:url = printf(s:MOZAICFM_M4A_FILE_FORMAT, a:str)
-  let l:channels = mozaicfm#get_channel_list()
-  for l:channel in l:channels
+  for l:channel in mozaicfm#get_channel_list()
     if l:channel.enclosure ==# l:url
       let s:current_channel = l:channel
       call s:play(l:url)
@@ -146,21 +145,19 @@ endfunction
 
 
 function! s:parse_dom(dom)
-  let l:channels = s:get_children_by_name(a:dom, 'channel')
-  let l:items = s:get_children_by_name(l:channels, 'item')
   let l:infos = []
-  for l:c1 in l:items
+  for l:c1 in a:dom.childNode('channel').childNodes('item')
     let l:info = {}
     for l:c2 in l:c1.child
       if type(l:c2) == 4
         if l:c2.name ==# 'title'
-          let l:info.title = l:c2.child[0]
+          let l:info.title = l:c2.value()
         elseif l:c2.name ==# 'description'
-          let l:info.note = s:parse_description('<html>' . l:c2.child[0] . '</html>')
+          let l:info.note = s:parse_description('<html>' . l:c2.value() . '</html>')
         elseif l:c2.name ==# 'pubDate'
-          let l:info.pubDate = l:c2.child[0]
+          let l:info.pubDate = l:c2.value()
         elseif l:c2.name ==# 'itunes:summary'
-          let l:info.summary = l:c2.child[0]
+          let l:info.summary = l:c2.value()
         elseif l:c2.name ==# 'enclosure'
           let l:info.enclosure = substitute(l:c2.attr.url, '^https', 'http', '')
         endif
@@ -175,28 +172,15 @@ function! s:parse_dom(dom)
 endfunction
 
 function! s:parse_description(xml)
-  let l:dom = s:XML.parse(a:xml)
-  let l:uls = s:get_children_by_name(l:dom, 'ul')
-  let l:lis = s:get_children_by_name(l:uls, 'li')
+  let l:lis = []
+  for l:ul in s:XML.parse(a:xml).childNodes('ul')
+    let l:lis += l:ul.childNodes('li')
+  endfor
   let l:lis = filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4')
   return map(l:lis, '{
         \ "href": v:val.child[0].attr.href,
-        \ "text": v:val.child[0].child[0]
+        \ "text": v:val.child[0].value()
         \}')
-endfunction
-
-function! s:get_children_by_name(parents, child_name)
-  let l:child_list = []
-  if type(a:parents) == 4
-    let l:child_list = filter(a:parents.child, 'type(v:val) == 4 && v:val.name ==# a:child_name')
-  else
-    let l:child_list = []
-    for l:c1 in a:parents
-      let l:child_list += filter(l:c1.child, 'type(v:val) == 4 && v:val.name ==# a:child_name')
-      unlet l:c1 
-    endfor
-  endif
-  return l:child_list
 endfunction
 
 function! s:play(url)

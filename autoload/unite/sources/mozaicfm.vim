@@ -3,6 +3,7 @@
 " AUTHOR: koturn <jeak.koutan.apple@gmail.com>
 " DESCRIPTION: {{{
 " Unite source of mozaicfm.vim
+" unite.vim: https://github.com/Shougo/unite.vim
 " }}}
 " ============================================================================
 let s:save_cpo = &cpo
@@ -30,7 +31,7 @@ function! s:source.action_table.play.func(candidate)
   call mozaicfm#play(a:candidate.action__channel)
 endfunction
 
-function! s:source.async_gather_candidates(args, context)
+function! s:source.gather_candidates(args, context)
   let l:channels = mozaicfm#get_channel_list()
   let a:context.source.unite__cached_candidates = []
   return map(l:channels, '{

@@ -16,11 +16,12 @@ let g:mozaicfm#cache_dir = get(g:, 'mozaicfm#cache_dir', expand('~/.cache/mozaic
 let g:mozaicfm#verbose = get(g:, 'mozaicfm#verbose', 0)
 
 let s:V = vital#of('mozaicfm')
+let s:L = s:V.import('Data.List')
 let s:CACHE = s:V.import('System.Cache')
 let s:HTTP = s:V.import('Web.HTTP')
 let s:JSON = s:V.import('Web.JSON')
-let s:PM = s:V.import('ProcessManager')
 let s:XML = s:V.import('Web.XML')
+let s:PM = s:V.import('ProcessManager')
 
 let s:current_channel = {}
 let s:MOZAICFM_FEEDS_URL = 'http://feeds.feedburner.com/mozaicfm'
@@ -145,41 +146,33 @@ endfunction
 
 
 function! s:parse_dom(dom)
-  let l:infos = []
-  for l:c1 in a:dom.childNode('channel').childNodes('item')
-    let l:info = {}
-    for l:c2 in l:c1.child
-      if type(l:c2) == 4
-        if l:c2.name ==# 'title'
-          let l:info.title = l:c2.value()
-        elseif l:c2.name ==# 'description'
-          let l:info.note = s:parse_description('<html>' . l:c2.value() . '</html>')
-        elseif l:c2.name ==# 'pubDate'
-          let l:info.pubDate = l:c2.value()
-        elseif l:c2.name ==# 'itunes:summary'
-          let l:info.summary = l:c2.value()
-        elseif l:c2.name ==# 'enclosure'
-          let l:info.enclosure = substitute(l:c2.attr.url, '^https', 'http', '')
-        endif
-      endif
-      unlet l:c2
-    endfor
-    if len(l:info) == 5
-      call add(l:infos, l:info)
+  let l:items = a:dom.childNode('channel').childNodes('item')
+  return filter(map(l:items, 's:make_info(v:val)'), 'len(v:val) == 5')
+endfunction
+
+function! s:make_info(item)
+  let l:info = {}
+  for l:c in filter(a:item.child, 'type(v:val) == 4')
+    if l:c.name ==# 'title'
+      let l:info.title = l:c.value()
+    elseif l:c.name ==# 'description'
+      let l:info.note = s:parse_description('<html>' . l:c.value() . '</html>')
+    elseif l:c.name ==# 'pubDate'
+      let l:info.pubDate = l:c.value()
+    elseif l:c.name ==# 'itunes:summary'
+      let l:info.summary = l:c.value()
+    elseif l:c.name ==# 'enclosure'
+      let l:info.enclosure = substitute(l:c.attr.url, '^https', 'http', '')
     endif
   endfor
-  return l:infos
+  return l:info
 endfunction
 
 function! s:parse_description(xml)
-  let l:lis = []
-  for l:ul in s:XML.parse(a:xml).childNodes('ul')
-    let l:lis += l:ul.childNodes('li')
-  endfor
-  let l:lis = filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4')
-  return map(l:lis, '{
-        \ "href": v:val.child[0].attr.href,
-        \ "text": v:val.child[0].value()
+  let l:lis = s:L.flatten(map(s:XML.parse(a:xml).childNodes('ul'), 'v:val.childNodes("li")'), 1)
+  return map(map(filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4'), 'v:val.child[0]'), '{
+        \ "href": v:val.attr.href,
+        \ "text": v:val.value()
         \}')
 endfunction
 

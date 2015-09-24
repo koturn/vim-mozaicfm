@@ -22,16 +22,16 @@ let s:source = {
       \ 'default_action': 'play',
       \}
 
-function! unite#sources#mozaicfm#define()
+function! unite#sources#mozaicfm#define() abort
   return s:source
 endfunction
 
 
-function! s:source.action_table.play.func(candidate)
+function! s:source.action_table.play.func(candidate) abort
   call mozaicfm#play(a:candidate.action__channel)
 endfunction
 
-function! s:source.gather_candidates(args, context)
+function! s:source.gather_candidates(args, context) abort
   let l:channels = mozaicfm#get_channel_list()
   let a:context.source.unite__cached_candidates = []
   return map(l:channels, '{

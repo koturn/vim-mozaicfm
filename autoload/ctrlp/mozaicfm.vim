@@ -26,12 +26,12 @@ else
 endif
 
 
-function! ctrlp#mozaicfm#init()
+function! ctrlp#mozaicfm#init() abort
   let s:channel_list = mozaicfm#get_channel_list()
   return map(copy(s:channel_list), 'v:val.title')
 endfunction
 
-function! ctrlp#mozaicfm#accept(mode, str)
+function! ctrlp#mozaicfm#accept(mode, str) abort
   call ctrlp#exit()
   for l:channel in s:channel_list
     if l:channel.title ==# a:str
@@ -43,6 +43,6 @@ function! ctrlp#mozaicfm#accept(mode, str)
 endfunction
 
 let s:id = g:ctrlp_builtins + len(g:ctrlp_ext_vars)
-function! ctrlp#mozaicfm#id()
+function! ctrlp#mozaicfm#id() abort
   return s:id
 endfunction

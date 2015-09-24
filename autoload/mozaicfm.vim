@@ -34,12 +34,12 @@ lockvar s:CACHE_FILENAME
 lockvar s:PROCESS_NAME
 
 
-function! mozaicfm#play(channel)
+function! mozaicfm#play(channel) abort
   let s:current_channel = a:channel
   call s:play(a:channel.enclosure)
 endfunction
 
-function! mozaicfm#play_by_number(str)
+function! mozaicfm#play_by_number(str) abort
   let l:url = printf(s:MOZAICFM_M4A_FILE_FORMAT, a:str)
   for l:channel in mozaicfm#get_channel_list()
     if l:channel.enclosure ==# l:url
@@ -51,7 +51,7 @@ function! mozaicfm#play_by_number(str)
   echoerr 'M4A file was Not Found'
 endfunction
 
-function! mozaicfm#show_info()
+function! mozaicfm#show_info() abort
   if empty(s:current_channel) || !s:is_playing() | return | endif
   echo '[TITLE] ' s:current_channel.title
   echo '[PUBLISHED DATE] ' s:current_channel.pubDate
@@ -64,49 +64,49 @@ function! mozaicfm#show_info()
   endfor
 endfunction
 
-function! mozaicfm#toggle_pause()
+function! mozaicfm#toggle_pause() abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'pause')
   endif
 endfunction
 
-function! mozaicfm#toggle_mute()
+function! mozaicfm#toggle_mute() abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'mute')
   endif
 endfunction
 
-function! mozaicfm#set_volume(volume)
+function! mozaicfm#set_volume(volume) abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'volume ' . a:volume . ' 1')
   endif
 endfunction
 
-function! mozaicfm#set_speed(speed)
+function! mozaicfm#set_speed(speed) abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'speed_set ' . a:speed)
   endif
 endfunction
 
-function! mozaicfm#seek(pos)
+function! mozaicfm#seek(pos) abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'seek ' . a:pos . ' 1')
   endif
 endfunction
 
-function! mozaicfm#rel_seek(pos)
+function! mozaicfm#rel_seek(pos) abort
   if s:is_playing()
     call s:PM.writeln(s:PROCESS_NAME, 'seek ' . a:pos)
   endif
 endfunction
 
-function! mozaicfm#stop()
+function! mozaicfm#stop() abort
   if s:is_playing()
     call s:PM.kill(s:PROCESS_NAME)
   endif
 endfunction
 
-function! mozaicfm#get_channel_list()
+function! mozaicfm#get_channel_list() abort
   if s:CACHE.filereadable(g:mozaicfm#cache_dir, s:CACHE_FILENAME)
     return s:JSON.decode(s:CACHE.readfile(g:mozaicfm#cache_dir, s:CACHE_FILENAME)[0]).mozaicfm
   else
@@ -114,7 +114,7 @@ function! mozaicfm#get_channel_list()
   endif
 endfunction
 
-function! mozaicfm#update_channel()
+function! mozaicfm#update_channel() abort
   let l:start_time = reltime()
   let l:time = l:start_time
   let l:response = s:HTTP.get(s:MOZAICFM_FEEDS_URL)
@@ -145,12 +145,12 @@ function! mozaicfm#update_channel()
 endfunction
 
 
-function! s:parse_dom(dom)
+function! s:parse_dom(dom) abort
   let l:items = a:dom.childNode('channel').childNodes('item')
   return filter(map(l:items, 's:make_info(v:val)'), 'len(v:val) == 5')
 endfunction
 
-function! s:make_info(item)
+function! s:make_info(item) abort
   let l:info = {}
   for l:c in filter(a:item.child, 'type(v:val) == 4')
     if l:c.name ==# 'title'
@@ -168,7 +168,7 @@ function! s:make_info(item)
   return l:info
 endfunction
 
-function! s:parse_description(xml)
+function! s:parse_description(xml) abort
   let l:lis = s:L.flatten(map(s:XML.parse(a:xml).childNodes('ul'), 'v:val.childNodes("li")'), 1)
   return map(map(filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4'), 'v:val.child[0]'), '{
         \ "href": v:val.attr.href,
@@ -176,7 +176,7 @@ function! s:parse_description(xml)
         \}')
 endfunction
 
-function! s:play(url)
+function! s:play(url) abort
   if !executable(g:mozaicfm#play_command)
     echoerr 'Error: Please install mplayer'
     return
@@ -189,7 +189,7 @@ function! s:play(url)
   call s:PM.touch(s:PROCESS_NAME, g:mozaicfm#play_command . ' ' . g:mozaicfm#play_option . ' ' . a:url)
 endfunction
 
-function! s:is_playing()
+function! s:is_playing() abort
   let l:status = 'dead'
   try
     let l:status = s:PM.status(s:PROCESS_NAME)

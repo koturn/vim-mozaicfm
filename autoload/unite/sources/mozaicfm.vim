@@ -32,9 +32,7 @@ function! s:source.action_table.play.func(candidate) abort
 endfunction
 
 function! s:source.gather_candidates(args, context) abort
-  let l:channels = mozaicfm#get_channel_list()
-  let a:context.source.unite__cached_candidates = []
-  return map(l:channels, '{
+  return map(mozaicfm#get_channel_list(), '{
         \ "word": v:val.title,
         \ "action__channel": v:val,
         \}')

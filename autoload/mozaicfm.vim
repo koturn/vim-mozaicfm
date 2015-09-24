@@ -17,20 +17,19 @@ let g:mozaicfm#verbose = get(g:, 'mozaicfm#verbose', 0)
 
 let s:V = vital#of('mozaicfm')
 let s:L = s:V.import('Data.List')
-let s:CACHE = s:V.import('System.Cache')
+let s:CacheFile = s:V.import('System.Cache').new('file', {'cache_dir': g:mozaicfm#cache_dir})
 let s:HTTP = s:V.import('Web.HTTP')
-let s:JSON = s:V.import('Web.JSON')
 let s:XML = s:V.import('Web.XML')
 let s:PM = s:V.import('ProcessManager')
 
 let s:current_channel = {}
 let s:MOZAICFM_FEEDS_URL = 'http://feeds.feedburner.com/mozaicfm'
 let s:MOZAICFM_M4A_FILE_FORMAT = 'http://files.mozaic.fm/mozaic-ep%s.m4a'
-let s:CACHE_FILENAME = 'channel.json'
+let s:CACHE_NAME = 'channel'
 let s:PROCESS_NAME = 'mozaicfm'
 lockvar s:MOZAICFM_FEEDS_URL
 lockvar s:MOZAICFM_M4A_URL_FORMAT
-lockvar s:CACHE_FILENAME
+lockvar s:CACHE_NAME
 lockvar s:PROCESS_NAME
 
 
@@ -107,11 +106,8 @@ function! mozaicfm#stop() abort
 endfunction
 
 function! mozaicfm#get_channel_list() abort
-  if s:CACHE.filereadable(g:mozaicfm#cache_dir, s:CACHE_FILENAME)
-    return s:JSON.decode(s:CACHE.readfile(g:mozaicfm#cache_dir, s:CACHE_FILENAME)[0]).mozaicfm
-  else
-    return mozaicfm#update_channel()
-  endif
+  let infos = s:CacheFile.get(s:CACHE_NAME)
+  return empty(infos) ? mozaicfm#update_channel() : infos
 endfunction
 
 function! mozaicfm#update_channel() abort
@@ -139,8 +135,7 @@ function! mozaicfm#update_channel() abort
     echomsg '[total]:       ' reltimestr(reltime(l:start_time)) 's'
   endif
 
-  let l:write_list = [s:JSON.encode({'mozaicfm': l:infos})]
-  call s:CACHE.writefile(g:mozaicfm#cache_dir, s:CACHE_FILENAME, l:write_list)
+  call s:CacheFile.set(s:CACHE_NAME, infos)
   return l:infos
 endfunction
 

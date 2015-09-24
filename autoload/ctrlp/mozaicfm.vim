@@ -10,21 +10,28 @@ if exists('g:loaded_ctrlp_mozaicfm') && g:loaded_ctrlp_mozaicfm
   finish
 endif
 let g:loaded_ctrlp_mozaicfm = 1
+let s:ctrlp_builtins = ctrlp#getvar('g:ctrlp_builtins')
 
 let s:mozaicfm_var = {
-      \ 'init':   'ctrlp#mozaicfm#init()',
+      \ 'init': 'ctrlp#mozaicfm#init()',
       \ 'accept': 'ctrlp#mozaicfm#accept',
-      \ 'lname':  'mozaicfm',
-      \ 'sname':  'mozaicfm',
-      \ 'type':   'line',
-      \ 'sort':   0
+      \ 'lname': 'mozaicfm',
+      \ 'sname': 'mozaicfm',
+      \ 'type': 'line',
+      \ 'sort': 0,
+      \ 'nolim': 1
       \}
 if exists('g:ctrlp_ext_vars') && !empty(g:ctrlp_ext_vars)
-  let g:ctrlp_ext_vars = add(g:ctrlp_ext_vars, s:mozaicfm_var)
+  call add(g:ctrlp_ext_vars, s:mozaicfm_var)
 else
   let g:ctrlp_ext_vars = [s:mozaicfm_var]
 endif
 
+let s:id = s:ctrlp_builtins + len(g:ctrlp_ext_vars)
+unlet s:ctrlp_builtins
+function! ctrlp#mozaicfm#id() abort
+  return s:id
+endfunction
 
 function! ctrlp#mozaicfm#init() abort
   let s:channel_list = mozaicfm#get_channel_list()
@@ -40,9 +47,4 @@ function! ctrlp#mozaicfm#accept(mode, str) abort
       return
     endif
   endfor
-endfunction
-
-let s:id = g:ctrlp_builtins + len(g:ctrlp_ext_vars)
-function! ctrlp#mozaicfm#id() abort
-  return s:id
 endfunction

@@ -166,7 +166,7 @@ endfunction
 function! s:parse_description(xml) abort
   let l:lis = s:L.flatten(map(s:XML.parse(a:xml).childNodes('ul'), 'v:val.childNodes("li")'), 1)
   return map(map(filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4'), 'v:val.child[0]'), '{
-        \ "href": v:val.attr.href,
+        \ "href": has_key(v:val.attr, "href") ? v:val.attr.href : "",
         \ "text": v:val.value()
         \}')
 endfunction

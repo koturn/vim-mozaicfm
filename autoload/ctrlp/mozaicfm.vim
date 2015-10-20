@@ -40,9 +40,9 @@ endfunction
 
 function! ctrlp#mozaicfm#accept(mode, str) abort
   call ctrlp#exit()
-  for l:channel in s:channel_list
-    if l:channel.title ==# a:str
-      call mozaicfm#play(l:channel)
+  for channel in s:channel_list
+    if channel.title ==# a:str
+      call mozaicfm#play(channel)
       call mozaicfm#show_info()
       return
     endif

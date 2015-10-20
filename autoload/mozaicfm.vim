@@ -39,11 +39,11 @@ function! mozaicfm#play(channel) abort
 endfunction
 
 function! mozaicfm#play_by_number(str) abort
-  let l:url = printf(s:MOZAICFM_M4A_FILE_FORMAT, a:str)
-  for l:channel in mozaicfm#get_channel_list()
-    if l:channel.enclosure ==# l:url
-      let s:current_channel = l:channel
-      call s:play(l:url)
+  let url = printf(s:MOZAICFM_M4A_FILE_FORMAT, a:str)
+  for channel in mozaicfm#get_channel_list()
+    if channel.enclosure ==# url
+      let s:current_channel = channel
+      call s:play(url)
       return
     endif
   endfor
@@ -58,8 +58,8 @@ function! mozaicfm#show_info() abort
   echo '[SUMMARY]'
   echo '  ' s:current_channel.summary
   echo '[NOTES]'
-  for l:item in s:current_channel.note
-    echo '  -' l:item.text
+  for item in s:current_channel.note
+    echo '  -' item.text
   endfor
 endfunction
 
@@ -111,61 +111,61 @@ function! mozaicfm#get_channel_list() abort
 endfunction
 
 function! mozaicfm#update_channel() abort
-  let l:start_time = reltime()
-  let l:time = l:start_time
-  let l:response = s:HTTP.get(s:MOZAICFM_FEEDS_URL)
-  if l:response.status != 200
-    echoerr 'Connection error:' '[' . l:response.status . ']' l:response.statusText
+  let start_time = reltime()
+  let time = start_time
+  let response = s:HTTP.get(s:MOZAICFM_FEEDS_URL)
+  if response.status != 200
+    echoerr 'Connection error:' '[' . response.status . ']' response.statusText
     return
   endif
   if g:mozaicfm#verbose
-    echomsg '[HTTP request]:' reltimestr(reltime(l:time)) 's'
+    echomsg '[HTTP request]:' reltimestr(reltime(time)) 's'
   endif
 
-  let l:time = reltime()
-  let l:dom = s:XML.parse(l:response.content)
+  let time = reltime()
+  let dom = s:XML.parse(response.content)
   if g:mozaicfm#verbose
-    echomsg '[parse XML]:   ' reltimestr(reltime(l:time)) 's'
+    echomsg '[parse XML]:   ' reltimestr(reltime(time)) 's'
   endif
 
-  let l:time = reltime()
-  let l:infos = s:parse_dom(l:dom)
+  let time = reltime()
+  let infos = s:parse_dom(dom)
   if g:mozaicfm#verbose
-    echomsg '[parse DOM]:   ' reltimestr(reltime(l:time)) 's'
-    echomsg '[total]:       ' reltimestr(reltime(l:start_time)) 's'
+    echomsg '[parse DOM]:   ' reltimestr(reltime(time)) 's'
+    echomsg '[total]:       ' reltimestr(reltime(start_time)) 's'
   endif
 
   call s:CacheFile.set(s:CACHE_NAME, infos)
-  return l:infos
+  return infos
 endfunction
 
 
 function! s:parse_dom(dom) abort
-  let l:items = a:dom.childNode('channel').childNodes('item')
-  return filter(map(l:items, 's:make_info(v:val)'), 'len(v:val) == 5')
+  let items = a:dom.childNode('channel').childNodes('item')
+  return filter(map(items, 's:make_info(v:val)'), 'len(v:val) == 5')
 endfunction
 
 function! s:make_info(item) abort
-  let l:info = {}
-  for l:c in filter(a:item.child, 'type(v:val) == 4')
-    if l:c.name ==# 'title'
-      let l:info.title = l:c.value()
-    elseif l:c.name ==# 'description'
-      let l:info.note = s:parse_description('<html>' . l:c.value() . '</html>')
-    elseif l:c.name ==# 'pubDate'
-      let l:info.pubDate = l:c.value()
-    elseif l:c.name ==# 'itunes:summary'
-      let l:info.summary = l:c.value()
-    elseif l:c.name ==# 'enclosure'
-      let l:info.enclosure = substitute(l:c.attr.url, '^https', 'http', '')
+  let info = {}
+  for c in filter(a:item.child, 'type(v:val) == 4')
+    if c.name ==# 'title'
+      let info.title = c.value()
+    elseif c.name ==# 'description'
+      let info.note = s:parse_description('<html>' . c.value() . '</html>')
+    elseif c.name ==# 'pubDate'
+      let info.pubDate = c.value()
+    elseif c.name ==# 'itunes:summary'
+      let info.summary = c.value()
+    elseif c.name ==# 'enclosure'
+      let info.enclosure = substitute(c.attr.url, '^https', 'http', '')
     endif
   endfor
-  return l:info
+  return info
 endfunction
 
 function! s:parse_description(xml) abort
-  let l:lis = s:L.flatten(map(s:XML.parse(a:xml).childNodes('ul'), 'v:val.childNodes("li")'), 1)
-  return map(map(filter(l:lis, '!empty(v:val.child) && type(v:val.child[0]) == 4'), 'v:val.child[0]'), '{
+  let lis = s:L.flatten(map(s:XML.parse(a:xml).childNodes('ul'), 'v:val.childNodes("li")'), 1)
+  return map(map(filter(lis, '!empty(v:val.child) && type(v:val.child[0]) == 4'), 'v:val.child[0]'), '{
         \ "href": has_key(v:val.attr, "href") ? v:val.attr.href : "",
         \ "text": v:val.value()
         \}')
@@ -185,12 +185,12 @@ function! s:play(url) abort
 endfunction
 
 function! s:is_playing() abort
-  let l:status = 'dead'
+  let status = 'dead'
   try
-    let l:status = s:PM.status(s:PROCESS_NAME)
+    let status = s:PM.status(s:PROCESS_NAME)
   catch
   endtry
-  return l:status ==# 'inactive' || l:status ==# 'active'
+  return status ==# 'inactive' || status ==# 'active'
 endfunction
 
 
